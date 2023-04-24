@@ -14,6 +14,7 @@ import sys
 import concurrent.futures
 
 class CrawlingEstatesInfo:
+    
     def __init__(self,host) -> None:
         self.host=  host
         self.cur_path =os.path.dirname(os.path.realpath(__file__))
@@ -92,7 +93,7 @@ class CrawlingEstatesInfo:
 
         complex_list=self.get_apt_list(init_code)
 
-        save_dir = os.path.join(self.cur_path,'testdata')
+        save_dir = os.path.join(self.cur_path,'../dags/testdata')
         os.makedirs(save_dir,exist_ok=True)
         
         apt_list= []
@@ -104,7 +105,7 @@ class CrawlingEstatesInfo:
                 # apt_list+=apt_detail_list
                 df=pd.DataFrame.from_dict(apt_detail_list)
                 df.drop_duplicates(subset=['no'],keep='last',inplace=True)
-                save_filename= os.path.join(self.cur_path,'testdata',f'{self.cur_date}_{dong}_{apt_name}.csv')
+                save_filename= os.path.join(save_dir,f'{self.cur_date}_{dong}_{apt_name}.csv')
                 df.to_csv(save_filename,index=False)
 
                 print(f"complete_{apt_name}")
