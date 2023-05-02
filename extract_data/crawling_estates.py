@@ -106,9 +106,10 @@ class CrawlingEstatesInfo:
                 df=pd.DataFrame.from_dict(apt_detail_list)
                 df.drop_duplicates(subset=['no'],keep='last',inplace=True)
                 save_filename= os.path.join(save_dir,f'{self.cur_date}_{dong}_{apt_name}.csv')
-                df.to_csv(save_filename,index=False)
+                if len(df)!=0:
+                    df.to_csv(save_filename,index=False)
 
-                print(f"complete_{apt_name}")
+                # print(f"complete_{apt_name}")
             
             
             time.sleep(30)
