@@ -18,7 +18,8 @@ class CrawlingEstatesInfo:
     def __init__(self,host) -> None:
         self.host=  host
         self.cur_path =os.path.dirname(os.path.realpath(__file__))
-        self.cur_date = (datetime.datetime.now()-datetime.timedelta(days=1)).strftime('%Y%m%d')
+        self.cur_date = datetime.datetime.now().strftime('%Y%m%d')
+        # self.cur_date = '20230502'
                 
         self.default_header ={
             'Host': self.host,
@@ -211,7 +212,7 @@ class CrawlingEstatesInfo:
                 url = f'https://new.land.naver.com/api/articles/complex/{code}?realEstateType=APT%3AABYG%3AJGC&tradeType=&\
                     tag=%3A%3A%3A%3A%3A%3A%3A%3A&rentPriceMin=0&rentPriceMax=900000000&priceMin=0&priceMax=900000000&areaMin=0&\
                     areaMax=900000000&oldBuildYears&recentlyBuildYears&minHouseHoldCount&maxHouseHoldCount&showArticle=false&sameAddressGroup=true&\
-                        minMaintenanceCost&maxMaintenanceCost&priceType=RETAIL&directions=&page={idx}&complexNo={code}&buildingNos=&areaNos=&type=list&order=rank'
+                        minMaintenanceCost&maxMaintenanceCost&priceType=RETAIL&directions=&page={idx}&complexNo={code}&buildingNos=&areaNos=&type=list&order=dateDesc'
 
                 h= deepcopy(self.default_header)
                 h['Referer'] = f'https://new.land.naver.com/complexes/{code}?ms=37.411486,126.6136355,17&a=APT:ABYG:JGC&e=RETAIL'
@@ -225,7 +226,6 @@ class CrawlingEstatesInfo:
 
                 if len(article_list)==0:
                     print(f'last page_{idx-1}')
-
                     break
 
                 # apt_list= []
@@ -236,44 +236,10 @@ class CrawlingEstatesInfo:
                             tmpdict.update(d)
                             apt_list.append(tmpdict)
 
-
-                # pat = re.compile('[0-9]+')        
-                # for apt in for_sale['articleList']:
-                #     try:
-                #         tmpdict= deepcopy(complex_dict)
-                #         tmpdict['no'] = apt['articleNo']
-                #         tmpdict['apt_name'] = apt['articleName']
-                #         # tmpdict['estate_code'] = apt['realEstateTypeCode']
-                #         tmpdict['estate_name'] = apt['realEstateTypeName']
-                #         tmpdict['trade_name'] = apt['tradeTypeName']
-                #         tmpdict['supply_area'] = apt['area1']
-                #         tmpdict['exclusive_area'] = apt['area2']
-                #         tmpdict['direction'] = apt['direction']
-                #         tmpdict['confirmYmd'] = apt['articleConfirmYmd']
-                #         tmpdict['latitude'] = apt['latitude']
-                #         tmpdict['longitude'] = apt['longitude']
-                #         p = str(apt['dealOrWarrantPrc']).split(' ')
-                #         front=pat.match(p[0]).group()
-                #         back='0000'
-                #         if len(p)>1:
-                #             back=p[1].replace(',','').zfill(4)
-                            
-                #         price= int(front+back)
-                #         tmpdict['price'] = price
-                        
-                #         floor=apt['floorInfo'].split('/')
-                #         total_floor = floor[1].strip()
-                #         cur_floor = floor[0].strip()
-                #         tmpdict['total_floor'] = total_floor
-                #         tmpdict['current_floor'] = cur_floor
-                #         apt_list.append(tmpdict)
-                #     except:
-                #         cur_func= sys._getframe().f_code.co_name
-                #         err_msg = f'{traceback.format_exc()}_{cur_func}'
-                #         print(err_msg)
-                #         self.record_log(logging.ERROR,err_msg)
-                #         continue
                 idx+=1
+                if article_list[-1]['articleConfirmYmd'] < self.cur_date :
+                    print(f"{article_list[-1]['articleConfirmYmd']} : Past date")
+                    break
             # print(apt_list[0])
             return apt_list
             
@@ -289,7 +255,7 @@ class CrawlingEstatesInfo:
         pat = re.compile('[0-9]+')
         tmpdict={}
         try:
-            if apt['articleConfirmYmd'] <self.cur_date:
+            if apt['articleConfirmYmd'] != self.cur_date:
                 return tmpdict
 
             tmpdict['no'] = apt['articleNo']

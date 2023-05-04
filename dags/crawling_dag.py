@@ -26,7 +26,7 @@ dag = DAG(
     dag_id= "crawling_songdo_apt",
     description= "crawling songdo apt info",
     start_date= datetime.datetime(2023,4,24,tzinfo= time_z),
-    schedule_interval= "0 0/23 * * *",
+    schedule_interval= "0 23 * * *",
     # schedule_interval= "@hourly",
 )
 # start_date= datetime.datetime.now().strftime('%Y%m%d')
