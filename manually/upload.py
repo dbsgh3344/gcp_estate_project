@@ -1,12 +1,15 @@
-from airflow.providers.google.cloud.hooks.gcs import GCSHook
+# from airflow.providers.google.cloud.hooks.gcs import GCSHook
 import os
 import datetime
 import glob
 from google.cloud import bigquery,storage
 
 bk = 'estate_bucket'
-def _upload_file():
-    gcs = GCSHook()
+def _upload_file(): # upload local csv file to gcs
+    # gcs = GCSHook()
+    client = storage.Client()
+
+    bucket = client.get_bucket('estate_bucket')
     cur_path = os.path.dirname(os.path.realpath(__file__))
     tmp_path = os.path.join(cur_path,'../dags/testdata')
     filelist = glob.glob(os.path.join(tmp_path,'*'))
@@ -15,13 +18,18 @@ def _upload_file():
 
     for f in filelist:
         file_dt = os.path.basename(f).split('_')[0]
-        # print(file_dt,f)
-        object_filepath = f'estate/songdo/{file_dt}/{os.path.basename(f)}'
-        gcs.upload(
-            bucket_name = bk,
-            object_name = object_filepath,
-            filename = f
-        )
+        print(file_dt)
+        # object_filepath = f'estate/songdo/{file_dt}/{os.path.basename(f)}'
+        object_filepath = f'estate/songdo/{file_dt}'
+        blob = bucket.blob(object_filepath)
+        blob.upload_from_filename(f)
+        break
+        # gcs.upload(
+        #     bucket_name = bk,
+        #     object_name = object_filepath,
+        #     filename = f
+        # )
+
         msg = f'success upload {f}'
         # with open(log_path,'a') as fs :
         #     fs.write(msg+'\n')
@@ -29,7 +37,7 @@ def _upload_file():
         os.remove(f)
         # upload_file_list.append(object_filepath)
 
-def insert_to_bq() :
+def insert_to_bq(src_folder) :    # insert gcs data to bigquery
     client = bigquery.Client()
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bk)
@@ -43,7 +51,7 @@ def insert_to_bq() :
     )
 
     for i in bucket.list_blobs():
-        root = 'estate/songdo/20230502'
+        root = src_folder
         if i.name.startswith(root) :
             file_name = i.name
             uri = 'gs://{}/{}'.format(bk, file_name)
@@ -53,12 +61,12 @@ def insert_to_bq() :
             )
             load_job.result()  # Wait for the load job to complete
 
-            # # Print the number of rows inserted into the BigQuery table
+            
             # print('Loaded {} rows into {}:{}.'.format(
             #     load_job.output_rows, dataset_id, table_id))
             print(f"{i.name} loaded")
 
 
-
-insert_to_bq()
-# _upload_file()
+_upload_file()
+# src_folder = 'estate/songdo/20230506'
+# insert_to_bq(src_folder)
