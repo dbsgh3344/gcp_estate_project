@@ -14,15 +14,15 @@ time_z = pendulum.timezone('Asia/Seoul')
 dag = DAG(
     dag_id= "tmp_test",
     description= "tttest",
-    start_date= datetime.datetime(2023,4,19,tzinfo= time_z),
-    schedule_interval= "@daily",
+    start_date= datetime.datetime(2023,5,8,tzinfo= time_z),
+    schedule_interval= "0 22 * * *",
     # schedule_interval= "@hourly",
 )
 
 def test() :
     log_path = '/home/dbsgh3322/testlog.txt'
-    with open(log_path,'w') as f:
-        f.write('success test dag')
+    with open(log_path,'a') as f:
+        f.write(f'success test dag st :{dag.start_date} end: {dag.end_date} \n')
 
 
 t = PythonOperator(

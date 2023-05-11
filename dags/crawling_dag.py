@@ -25,8 +25,8 @@ time_z = pendulum.timezone('Asia/Seoul')
 dag = DAG(
     dag_id= "crawling_songdo_apt",
     description= "crawling songdo apt info",
-    start_date= datetime.datetime(2023,4,24,tzinfo= time_z),
-    schedule_interval= "0 23 * * *",
+    start_date= datetime.datetime(2023,5,10,tzinfo= time_z),
+    schedule_interval= "@daily",
     # schedule_interval= "@hourly",
 )
 # start_date= datetime.datetime.now().strftime('%Y%m%d')
@@ -45,10 +45,11 @@ def _upload_file():
     tmp_path = os.path.join(cur_path,'testdata')
     filelist = glob.glob(os.path.join(tmp_path,'*'))
     log_path = os.path.join(cur_path,'logs','file_upload.txt')
-    daily_dir = datetime.datetime.now().strftime('%Y%m%d')
+    # daily_dir = datetime.datetime.now().strftime('%Y%m%d')
 
     for f in filelist:
-        object_filepath = f'estate/songdo/{daily_dir}/{os.path.basename(f)}'
+        file_dt = os.path.basename(f).split('_')[0]
+        object_filepath = f'estate/songdo/{file_dt}/{os.path.basename(f)}'
         gcs.upload(
             bucket_name = bk,
             object_name = object_filepath,

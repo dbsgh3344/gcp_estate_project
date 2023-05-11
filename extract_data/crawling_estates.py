@@ -12,6 +12,7 @@ import os
 import traceback
 import sys
 import concurrent.futures
+import json
 
 class CrawlingEstatesInfo:
     
@@ -19,17 +20,33 @@ class CrawlingEstatesInfo:
         self.host=  host
         self.cur_path =os.path.dirname(os.path.realpath(__file__))
         self.cur_date = datetime.datetime.now().strftime('%Y%m%d')
-        # self.cur_date = '20230502'
-                
-        self.default_header ={
-            'Host': self.host,
-            'sec-ch-ua-platform': "Linux",
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            "Sec-Fetch-Site": "same-origin",
-            "authorization":'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IlJFQUxFU1RBVEUiLCJpYXQiOjE2Nzg4NDk3MjIsImV4cCI6MTY3ODg2MDUyMn0.PgvSsG5pfAwhl3kDINcUIgW5y57Mmu_Hwd01TElb2IU',
-            # "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
-        }
+        # self.cur_date = '20230510'
+        header_path = os.path.join(self.cur_path,'url_header.json')
+        self.default_header = {}
+        with open(header_path,'r') as f:
+            self.default_header = json.loads(f.read())
+            
+        self.default_header['Host'] = self.host
+        self.col_type = {
+            'construction_company':'object',
+            'use_approve':'int64',
+            'detail_addrs':'string',
+            'addrs':'object',
+            'apt_code':'int64',
+            'no':'int64',
+            'apt_name':'object',
+            'estate_name':'object',
+            'trade_name':'object',
+            'supply_area':'int64',
+            'exclusive_area':'int64',
+            'direction':'object',
+            'confirmYmd':'int64',
+            'latitude':'float64',
+            'longitude':'float64',
+            'price':'int64',
+            'total_floor':'int64',
+            'current_floor':'string'
+            }
         
     # def set_current_date(self) :
         # txtfile= os.path.join(self.cur_path,'startdate.txt')
@@ -105,10 +122,14 @@ class CrawlingEstatesInfo:
                 apt_detail_list=self.get_for_sale(complex_info['complexNo'],dicts)
                 # apt_list+=apt_detail_list
                 df=pd.DataFrame.from_dict(apt_detail_list)
+                if not len(df) :
+                    continue
                 df.drop_duplicates(subset=['no'],keep='last',inplace=True)
+                df.dropna(inplace=True)
+                df = df.astype(self.col_type)
                 save_filename= os.path.join(save_dir,f'{self.cur_date}_{dong}_{apt_name}.csv')
-                if len(df)!=0:
-                    df.to_csv(save_filename,index=False)
+                df.to_csv(save_filename,index=False)
+                
 
                 # print(f"complete_{apt_name}")
             
@@ -129,7 +150,6 @@ class CrawlingEstatesInfo:
         url = f'https://new.land.naver.com/api/regions/list?cortarNo={code}'        
         h= deepcopy(self.default_header)
         h['Referer'] = 'https://new.land.naver.com/complexes?ms=37.3855288,126.6369023,16&a=ABYG:JGC:APT&e=RETAIL'
-        h['User-Agent'] = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
 
 
         r= requests.get(url,data={"sameAddressGroup":"false"},headers=h)
@@ -145,7 +165,6 @@ class CrawlingEstatesInfo:
         
         h= deepcopy(self.default_header)
         h['Referer'] = 'https://new.land.naver.com/complexes?ms=37.3855288,126.6369023,16&a=ABYG:JGC:APT&e=RETAIL'
-        h['User-Agent'] = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
         r= requests.get(url,data={"sameAddressGroup":"false"},headers=h)
         apt = json.loads(r.text)
         complex_list = apt['complexList']
@@ -160,7 +179,6 @@ class CrawlingEstatesInfo:
 
             h= deepcopy(self.default_header)
             h['Referer'] = f'https://new.land.naver.com/complexes/{code}?ms=37.411486,126.6136355,17&a=APT:ABYG:JGC&e=RETAIL'
-            h['User-Agent'] = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
             r= requests.get(url,data={"sameAddressGroup":"false"},headers=h)
             aptinfo = json.loads(r.text)
             cplx_detail= aptinfo['complexDetail']
@@ -187,7 +205,6 @@ class CrawlingEstatesInfo:
         # url =f'https://new.land.naver.com/api/complexes/{code}/prices/real?complexNo={code}&tradeType=A1&year=5&priceChartChange=false&areaNo=0&addedRowCount=51&type=table'
         h= deepcopy(self.default_header)
         h['Referer'] = f'https://new.land.naver.com/complexes/{code}?ms=37.411486,126.6136355,17&a=APT:ABYG:JGC&e=RETAIL'
-        h['User-Agent'] = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
         r= requests.get(url,data={"sameAddressGroup":"false"},headers=h)
         apt_price = json.loads(r.text)
 
@@ -216,7 +233,6 @@ class CrawlingEstatesInfo:
 
                 h= deepcopy(self.default_header)
                 h['Referer'] = f'https://new.land.naver.com/complexes/{code}?ms=37.411486,126.6136355,17&a=APT:ABYG:JGC&e=RETAIL'
-                h['User-Agent'] = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
                 r= requests.get(url,headers=h)
                 try:
                     for_sale = json.loads(r.text)
@@ -295,7 +311,6 @@ class CrawlingEstatesInfo:
 
 
 if __name__=='__main__':
-
     
     c = CrawlingEstatesInfo('new.land.naver.com')
     st= time.time()
