@@ -16,11 +16,10 @@ import json
 
 class CrawlingEstatesInfo:
     
-    def __init__(self,host) -> None:
+    def __init__(self,host,cur_date) -> None:
         self.host=  host
         self.cur_path =os.path.dirname(os.path.realpath(__file__))
-        self.cur_date = datetime.datetime.now().strftime('%Y%m%d')
-        # self.cur_date = '20230510'
+        self.cur_date = cur_date
         header_path = os.path.join(self.cur_path,'url_header.json')
         self.default_header = {}
         with open(header_path,'r') as f:
@@ -124,9 +123,9 @@ class CrawlingEstatesInfo:
                 df=pd.DataFrame.from_dict(apt_detail_list)
                 if not len(df) :
                     continue
-                df.drop_duplicates(subset=['no'],keep='last',inplace=True)
-                df.dropna(inplace=True)
-                df = df.astype(self.col_type)
+                # df.drop_duplicates(subset=['no'],keep='last',inplace=True)
+                # df.dropna(inplace=True)
+                # df = df.astype(self.col_type)
                 save_filename= os.path.join(save_dir,f'{self.cur_date}_{dong}_{apt_name}.csv')
                 df.to_csv(save_filename,index=False)
                 
@@ -311,8 +310,8 @@ class CrawlingEstatesInfo:
 
 
 if __name__=='__main__':
-    
-    c = CrawlingEstatesInfo('new.land.naver.com')
+    dt_now = datetime.datetime.now().strftime('%Y%m%d')
+    c = CrawlingEstatesInfo('new.land.naver.com',dt_now)
     st= time.time()
     # a=c.get_city_total_info("인천시")
     a= c.get_specific_region('인천시','연수구','송도동')
