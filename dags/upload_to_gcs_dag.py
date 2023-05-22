@@ -6,21 +6,21 @@ import os
 import airflow.utils.dates
 # import requests
 # import requests.exceptions as requests_exceptions
-from airflow import DAG
+from airflow import DAG,macros
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 # from crawling_estates import CrawlingEstatesInfo
 import datetime
 import pendulum
 from airflow.contrib.operators.gcs_to_bq import GoogleCloudStorageToBigQueryOperator
-
+# from airflow.macros import macros
 
 
 time_z = pendulum.timezone('Asia/Seoul')
 dag = DAG(
     dag_id= "gcp_test",
     description= "only test gcp",
-    start_date= datetime.datetime(2023,4,18,15,40,tzinfo= time_z),
+    start_date= datetime.datetime(2023,4,6,15,40,tzinfo= time_z),
     schedule_interval= "@once",
     # schedule_interval= "@hourly",
 )
@@ -28,9 +28,9 @@ dag = DAG(
 def _upload_file():
     gcs= GCSHook()
     bk = 'estate_bucket'
-    tmp_path ='/home/dbsgh3322/airflow/dags/testdata/'
-    filelist=glob.glob(os.path.join(tmp_path,'*'))    
     cur_path = os.path.dirname(os.path.realpath(__file__))
+    # tmp_path ='/home/dbsgh3322/airflow/dags/testdata/'
+    filelist=glob.glob(os.path.join(cur_path,'testdata','*'))    
     log_path = os.path.join(cur_path,'logs','file_upload.txt')
 
     for f in filelist:
@@ -41,8 +41,9 @@ def _upload_file():
         )
 
         msg = f'success upload {f}'
-        with open(log_path,'a') as fs :
-            fs.write(msg+'\n')
+        print(msg)
+        # with open(log_path,'a') as fs :
+        #     fs.write(msg+'\n')
         os.remove(f)
 
 upload_files = PythonOperator(
@@ -60,7 +61,7 @@ gcsToBigQuery = GoogleCloudStorageToBigQueryOperator(
     gcp_conn_id = 'bigquery_default',
     destination_project_dataset_table = 'tmp.test2', 
     bucket = bk, 
-    source_objects = [p],
+    source_objects = [f"estate/songdo/"+"{{ ds_nodash }}_송도동_e편한세상송도.csv"],
     source_format = 'CSV',
     write_disposition='WRITE_APPEND',
     create_disposition = 'CREATE_IF_NEEDED',
@@ -68,5 +69,5 @@ gcsToBigQuery = GoogleCloudStorageToBigQueryOperator(
 )
 
 
-# upload_files
+upload_files
 # gcsToBigQuery

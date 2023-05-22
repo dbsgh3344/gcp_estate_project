@@ -24,7 +24,8 @@ class CrawlingEstatesInfo:
         self.default_header = {}
         with open(header_path,'r') as f:
             self.default_header = json.loads(f.read())
-            
+        
+        # print(f'current date {self.cur_date}')
         self.default_header['Host'] = self.host
         self.col_type = {
             'construction_company':'object',
@@ -238,6 +239,7 @@ class CrawlingEstatesInfo:
                     article_list= for_sale['articleList']
                 except:
                     article_list=[]
+                    # print(f'err is {traceback.format_exc()}')
 
                 if len(article_list)==0:
                     print(f'last page_{idx-1}')
@@ -270,6 +272,7 @@ class CrawlingEstatesInfo:
         pat = re.compile('[0-9]+')
         tmpdict={}
         try:
+            print(f"data date is {apt['articleConfirmYmd']}")
             if apt['articleConfirmYmd'] != self.cur_date:
                 return tmpdict
 
@@ -311,6 +314,7 @@ class CrawlingEstatesInfo:
 
 if __name__=='__main__':
     dt_now = datetime.datetime.now().strftime('%Y%m%d')
+    # dt_now = '20230511'
     c = CrawlingEstatesInfo('new.land.naver.com',dt_now)
     st= time.time()
     # a=c.get_city_total_info("인천시")

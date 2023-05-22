@@ -4,7 +4,7 @@ import pandas as pd
 import airflow.utils.dates
 import requests
 import requests.exceptions as requests_exceptions
-from airflow import DAG
+from airflow import DAG,macros
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 import sys
@@ -23,7 +23,7 @@ project = 'estate-project-382208'
 dataset = 'estate_dataset'
 bigquery_table = 'for_sale'
 bigquery_agg_table = 'for_sale_agg'
-dt_now = datetime.datetime.now().strftime('%Y%m%d')
+# dt_now = datetime.datetime.now().strftime('%Y%m%d')
 
 time_z = pendulum.timezone('Asia/Seoul')
 dag = DAG(
@@ -35,14 +35,13 @@ dag = DAG(
     schedule_interval=None
 )
 
-c = CrawlingEstatesInfo('new.land.naver.com',dt_now)
-get_regions = PythonOperator(
-    task_id='get_regions',
-    python_callable= c.get_specific_region,
-    op_kwargs= {'cityname':'인천시','gu':'연수구','dong':'송도동'},
-    dag= dag)
+def _crawling_task(ds_nodash,**kwargs) :
+    c = CrawlingEstatesInfo('new.land.naver.com',ds_nodash)
+    c.get_specific_region('인천시','연수구','송도동')
 
-def _merge_daily_file() :
+
+
+def _merge_daily_file(ds_nodash,**kwargs) :
     col_type = {
             'construction_company':'object',
             'use_approve':'int64',
@@ -68,24 +67,27 @@ def _merge_daily_file() :
     cur_path = os.path.dirname(os.path.realpath(__file__))
     tmp_path = os.path.join(cur_path,'testdata')
     filelist = glob.glob(tmp_path+'/*.csv')
-    datelist = set(map(lambda x: os.path.basename(x).split('_')[0],filelist))
-    for d in datelist :
-        globals()[f'dt_{d}']=pd.DataFrame()
+    # datelist = set(map(lambda x: os.path.basename(x).split('_')[0],filelist))
+    # for d in datelist :
+    #     globals()[f'dt_{d}']=pd.DataFrame()
 
+    tmp = pd.DataFrame()
     for f in filelist :
         dt = os.path.basename(f).split('_')[0]
-        df = pd.read_csv(f)
-        globals()[f'dt_{dt}'] = pd.concat([globals()[f'dt_{dt}'],df])
-        os.remove(f)
+        if dt == ds_nodash:
+            df = pd.read_csv(f)
+            # globals()[f'dt_{dt}'] = pd.concat([globals()[f'dt_{dt}'],df])
+            tmp = pd.concat([tmp,df])
+            os.remove(f)
+            
         
-        
-    for d in datelist :
-        tmp = pd.DataFrame(globals()[f'dt_{d}'])
-        tmp.drop_duplicates(subset=['no'],keep='last',inplace=True)
-        tmp.dropna(inplace=True)
-        tmp = tmp.astype(col_type)
-        filename = os.path.join(tmp_path,f'songdo_{d}.csv')
-        tmp.to_csv(filename,index=False)
+    # for d in datelist :
+    # tmp = pd.DataFrame(globals()[f'dt_{d}'])
+    tmp.drop_duplicates(subset=['no'],keep='last',inplace=True)
+    tmp.dropna(inplace=True)
+    tmp = tmp.astype(col_type)
+    filename = os.path.join(tmp_path,f'songdo_{ds_nodash}.csv')
+    tmp.to_csv(filename,index=False)
 
 
 
@@ -114,9 +116,18 @@ def _upload_file():
         # upload_file_list.append(object_filepath)
 
 
+
+get_regions = PythonOperator(
+    task_id='get_regions',
+    python_callable= _crawling_task,
+    provide_context=True,
+    # op_kwargs= {'cityname':'인천시','gu':'연수구','dong':'송도동'},
+    dag= dag)
+
 merge_files = PythonOperator(
     task_id = 'merge_file',
     python_callable = _merge_daily_file,
+    provide_context=True,
     dag = dag
 )
 
@@ -133,7 +144,7 @@ gcsToBigQuery = GoogleCloudStorageToBigQueryOperator(
     gcp_conn_id = 'bigquery_default',
     destination_project_dataset_table = f'{dataset}.{bigquery_table}', 
     bucket = gcs_bucket, 
-    source_objects = [f"estate/songdo/*_{dt_now}.csv"],
+    source_objects = ["estate/songdo/*_{{ ds_nodash }}.csv"],
     source_format = 'CSV',
     write_disposition='WRITE_APPEND',
     # create_disposition = 'CREATE_IF_NEEDED',
@@ -145,8 +156,8 @@ daily_for_sale_agg = BigQueryExecuteQueryOperator(
     gcp_conn_id = "bigquery_default",
     sql = f"insert into {project}.{dataset}.{bigquery_agg_table} (confirmYmd,apt_name,count) \
         SELECT confirmYmd,apt_name,sum(1) as count \
-        FROM {project}.{dataset}.{bigquery_table} \
-        where confirmYmd={dt_now} group by apt_name,confirmYmd;",
+        FROM {project}.{dataset}.{bigquery_table} " +
+        "where confirmYmd={{ ds_nodash }} group by apt_name,confirmYmd;",
     write_disposition = "WRITE_TRUNCATE",
     use_legacy_sql=False,
     dag=dag
@@ -156,4 +167,3 @@ daily_for_sale_agg = BigQueryExecuteQueryOperator(
 
 
 get_regions >> merge_files >> upload_files >> gcsToBigQuery >> daily_for_sale_agg
-# get_regions
