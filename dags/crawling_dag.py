@@ -138,7 +138,18 @@ upload_files = PythonOperator(
     dag = dag
 )
 
-# p = 'estate/songdo/20230406_송도동_e편한세상송도.csv'
+del_today_data_in_bq = BigQueryExecuteQueryOperator(
+    task_id = "del_today_in_bq",
+    gcp_conn_id = "bigquery_default",
+    sql = [
+        f"delete {project}.{dataset}.{bigquery_table} where " +
+        "confirmYmd={{ ds_nodash }}"
+    ],
+    write_disposition = "WRITE_TRUNCATE",
+    use_legacy_sql=False,
+    dag=dag
+)
+
 gcsToBigQuery = GoogleCloudStorageToBigQueryOperator(
     task_id = 'gcs_to_bq', 
     gcp_conn_id = 'bigquery_default',
@@ -154,10 +165,12 @@ gcsToBigQuery = GoogleCloudStorageToBigQueryOperator(
 daily_for_sale_agg = BigQueryExecuteQueryOperator(
     task_id = "daily_for_sale_agg",
     gcp_conn_id = "bigquery_default",
-    sql = f"insert into {project}.{dataset}.{bigquery_agg_table} (confirmYmd,apt_name,count) \
+    sql = [f"delete {project}.{dataset}.{bigquery_agg_table} where " + 
+        "confirmYmd={{ ds_nodash }};",
+        f"insert into {project}.{dataset}.{bigquery_agg_table} (confirmYmd,apt_name,count) \
         SELECT confirmYmd,apt_name,sum(1) as count \
         FROM {project}.{dataset}.{bigquery_table} " +
-        "where confirmYmd={{ ds_nodash }} group by apt_name,confirmYmd;",
+        "where confirmYmd={{ ds_nodash }} group by apt_name,confirmYmd;"],
     write_disposition = "WRITE_TRUNCATE",
     use_legacy_sql=False,
     dag=dag
@@ -166,4 +179,4 @@ daily_for_sale_agg = BigQueryExecuteQueryOperator(
 
 
 
-get_regions >> merge_files >> upload_files >> gcsToBigQuery >> daily_for_sale_agg
+get_regions >> merge_files >> upload_files >> del_today_data_in_bq >> gcsToBigQuery >> daily_for_sale_agg
