@@ -85,3 +85,4 @@ if __name__ == "__main__" :
     #     cnvt_date = f"202305{str(date).zfill(2)}"
     #     merge_gcs_data(cnvt_date)
     upload_local_to_gcs()
+    # merge_gcs_data('20230518')
