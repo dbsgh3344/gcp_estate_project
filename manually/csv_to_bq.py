@@ -79,6 +79,26 @@ def upload_local_to_gcs() :
         os.remove(f)
 
         
+def prp_gcs_data() :
+    cur_path = os.path.dirname(os.path.realpath(__file__))
+    tmp_path = os.path.join(cur_path,'../dags/testdata')
+
+    for i in bucket.list_blobs() :
+        root = 'estate/songdo/20230530_'
+        if i.name.startswith(root) :
+            # print(i.name)
+            b= i.download_as_string() 
+            csv = BytesIO(b) 
+            df = pd.read_csv(csv) # byte to dataframe
+            # df.dropna(inplace=True)
+            # df= df.astype(d)
+            local_path = os.path.join(tmp_path,os.path.basename(i.name))
+            df.to_csv(local_path,index=False)
+            i.delete()
+            print(f'success {i.name}')
+            # break
+
+        
 if __name__ == "__main__" :
     # prp_gcs_csv_type()
     # for date in range(1,18):
@@ -86,3 +106,4 @@ if __name__ == "__main__" :
     #     merge_gcs_data(cnvt_date)
     upload_local_to_gcs()
     # merge_gcs_data('20230518')
+    # prp_gcs_data()

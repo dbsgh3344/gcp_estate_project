@@ -5,8 +5,10 @@ import airflow.utils.dates
 import requests
 import requests.exceptions as requests_exceptions
 from airflow import DAG,macros
+from airflow.exceptions import AirflowSkipException
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
+from airflow.operators.dummy import DummyOperator
 import sys
 sys.path.append('/home/dbsgh3322/estate_project/extract_data/')
 from crawling_estates import CrawlingEstatesInfo
@@ -35,10 +37,14 @@ dag = DAG(
     schedule_interval=None
 )
 
-def _crawling_task(ds_nodash,**kwargs) :
+     
+def _crawling_task_songdo(ds_nodash,**kwargs) :
     c = CrawlingEstatesInfo('new.land.naver.com',ds_nodash)
     c.get_specific_region('인천시','연수구','송도동')
 
+def _crawling_task_yeonsu(ds_nodash,**kwargs) :
+    c = CrawlingEstatesInfo('new.land.naver.com',ds_nodash)
+    c.get_specific_region('인천시','연수구','연수동')
 
 
 def _merge_daily_file(ds_nodash,**kwargs) :
@@ -67,27 +73,24 @@ def _merge_daily_file(ds_nodash,**kwargs) :
     cur_path = os.path.dirname(os.path.realpath(__file__))
     tmp_path = os.path.join(cur_path,'testdata')
     filelist = glob.glob(tmp_path+'/*.csv')
-    # datelist = set(map(lambda x: os.path.basename(x).split('_')[0],filelist))
-    # for d in datelist :
-    #     globals()[f'dt_{d}']=pd.DataFrame()
 
     tmp = pd.DataFrame()
     for f in filelist :
         dt = os.path.basename(f).split('_')[0]
         if dt == ds_nodash:
             df = pd.read_csv(f)
-            # globals()[f'dt_{dt}'] = pd.concat([globals()[f'dt_{dt}'],df])
             tmp = pd.concat([tmp,df])
             os.remove(f)
             
-        
-    # for d in datelist :
-    # tmp = pd.DataFrame(globals()[f'dt_{d}'])
-    tmp.drop_duplicates(subset=['no'],keep='last',inplace=True)
-    tmp.dropna(inplace=True)
-    tmp = tmp.astype(col_type)
-    filename = os.path.join(tmp_path,f'songdo_{ds_nodash}.csv')
-    tmp.to_csv(filename,index=False)
+    
+    if len(tmp) :
+        tmp.drop_duplicates(subset=['no'],keep='last',inplace=True)
+        tmp.dropna(inplace=True)
+        tmp = tmp.astype(col_type)
+        filename = os.path.join(tmp_path,f'apt_{ds_nodash}.csv')
+        tmp.to_csv(filename,index=False)
+    else :
+        raise AirflowSkipException(f"No Data on {ds_nodash}")
 
 
 
@@ -102,7 +105,7 @@ def _upload_file():
 
     for f in filelist:
         file_dt = os.path.basename(f).split('_')[0]
-        object_filepath = f'estate/songdo/{os.path.basename(f)}'
+        object_filepath = f'estate/incheon/{os.path.basename(f)}'
         gcs.upload(
             bucket_name = gcs_bucket,
             object_name = object_filepath,
@@ -116,12 +119,22 @@ def _upload_file():
         # upload_file_list.append(object_filepath)
 
 
+start_task = DummyOperator(
+    task_id = 'start',
+    dag = dag
+)
 
-get_regions = PythonOperator(
-    task_id='get_regions',
-    python_callable= _crawling_task,
+crawling_data_1 = PythonOperator(
+    task_id='get_data_1',
+    python_callable= _crawling_task_songdo,
     provide_context=True,
     # op_kwargs= {'cityname':'인천시','gu':'연수구','dong':'송도동'},
+    dag= dag)
+
+crawling_data_2 = PythonOperator(
+    task_id='get_data_2',
+    python_callable= _crawling_task_yeonsu,
+    provide_context=True,
     dag= dag)
 
 merge_files = PythonOperator(
@@ -155,7 +168,7 @@ gcsToBigQuery = GoogleCloudStorageToBigQueryOperator(
     gcp_conn_id = 'bigquery_default',
     destination_project_dataset_table = f'{dataset}.{bigquery_table}', 
     bucket = gcs_bucket, 
-    source_objects = ["estate/songdo/*_{{ ds_nodash }}.csv"],
+    source_objects = ["estate/incheon/*_{{ ds_nodash }}.csv"],
     source_format = 'CSV',
     write_disposition='WRITE_APPEND',
     # create_disposition = 'CREATE_IF_NEEDED',
@@ -177,6 +190,4 @@ daily_for_sale_agg = BigQueryExecuteQueryOperator(
     )
     
 
-
-
-get_regions >> merge_files >> upload_files >> del_today_data_in_bq >> gcsToBigQuery >> daily_for_sale_agg
+start_task >> [crawling_data_1,crawling_data_2] >> merge_files >> upload_files >> del_today_data_in_bq >> gcsToBigQuery >> daily_for_sale_agg
