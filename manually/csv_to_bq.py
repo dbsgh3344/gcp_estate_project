@@ -31,17 +31,39 @@ d = {
     'total_floor':'int64',
     'current_floor':'string'
     }
-for i in bucket.list_blobs() :
-    root = 'estate/songdo/20230504'
-    # re_root = 'estate/songdo/20230425'
-    if i.name.startswith(root) :    # find csv file in gcs
-        print(i.name)
-        b= i.download_as_string() 
-        csv = BytesIO(b) 
-        df = pd.read_csv(csv) # byte to dataframe
-        df.dropna(inplace=True)
-        df= df.astype(d)
-        # print(df.head())
-        table_name = 'tmp.test2'
-        gbq.to_gbq(df, table_name, project_id=p_id, if_exists='append') # insert df to bq
+
+def csv_to_bq():
+    for i in bucket.list_blobs() :
+        root = 'estate/songdo/20230504'
+        # re_root = 'estate/songdo/20230425'
+        if i.name.startswith(root) :    # find csv file in gcs
+            print(i.name)
+            b= i.download_as_string() 
+            csv = BytesIO(b) 
+            df = pd.read_csv(csv) # byte to dataframe
+            df.dropna(inplace=True)
+            df= df.astype(d)
+            # print(df.head())
+            table_name = 'tmp.test2'
+            gbq.to_gbq(df, table_name, project_id=p_id, if_exists='append') # insert df to bq
         
+def prp_gcs_data() :
+    cur_path = os.path.dirname(os.path.realpath(__file__))
+    tmp_path = os.path.join(cur_path,'../dags/testdata')
+
+    for i in bucket.list_blobs() :
+        root = 'estate/songdo/20230530_'
+        if i.name.startswith(root) :
+            # print(i.name)
+            b= i.download_as_string() 
+            csv = BytesIO(b) 
+            df = pd.read_csv(csv) # byte to dataframe
+            # df.dropna(inplace=True)
+            # df= df.astype(d)
+            local_path = os.path.join(tmp_path,os.path.basename(i.name))
+            df.to_csv(local_path,index=False)
+            i.delete()
+            print(f'success {i.name}')
+            # break
+
+prp_gcs_data()

@@ -3,3 +3,4 @@ logs/
 testdata/
 private_dir/
 url_header.json
+tmp.py
