@@ -120,27 +120,26 @@ class CrawlingEstatesInfo:
             apt_name =complex_info['complexName']
             if len(dicts.keys())!=0:
                 apt_detail_list=self.get_for_sale(complex_info['complexNo'],dicts)
-                # apt_list+=apt_detail_list
-                df=pd.DataFrame.from_dict(apt_detail_list)
-                if not len(df) :
-                    continue
+                apt_list+=apt_detail_list
+                # df=pd.DataFrame.from_dict(apt_detail_list)
+                # if not len(df) :
+                #     continue
                 # df.drop_duplicates(subset=['no'],keep='last',inplace=True)
                 # df.dropna(inplace=True)
                 # df = df.astype(self.col_type)
-                save_filename= os.path.join(save_dir,f'{self.cur_date}_{dong}_{apt_name}.csv')
-                df.to_csv(save_filename,index=False)
+                # save_filename= os.path.join(save_dir,f'{self.cur_date}_{dong}_{apt_name}.csv')
+                # df.to_csv(save_filename,index=False)
                 
 
                 # print(f"complete_{apt_name}")
             
             
-            time.sleep(30)
+            time.sleep(15)
             
 
-        # df=pd.DataFrame.from_dict(apt_list)
-        # df.drop_duplicates(subset=['no'],keep='last',inplace=True)
-        # save_filename= os.path.join(self.cur_path,'testdata',f'{self.cur_date}_{dong}.csv')
-        # df.to_csv(save_filename,index=False)
+        df=pd.DataFrame.from_dict(apt_list)
+        save_filename= os.path.join(save_dir,f'{self.cur_date}_{dong}.csv')
+        df.to_csv(save_filename,index=False)
         # with open('./startdate.txt','w') as f:
         #     f.write(self.cur_date)
 
