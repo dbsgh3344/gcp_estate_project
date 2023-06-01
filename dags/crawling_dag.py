@@ -37,9 +37,9 @@ dag = DAG(
     dag_id= "crawling_songdo_apt",
     description= "crawling songdo apt info",
     start_date= datetime.datetime(2023,5,10,tzinfo= time_z),
-    schedule_interval= "@daily",
+    # schedule_interval= "@daily",
     # schedule_interval= "@hourly",
-    # schedule_interval=None
+    schedule_interval=None
 )
 
 
@@ -105,7 +105,7 @@ def _upload_file():
     gcs = GCSHook()
     # bk = 'estate_bucket'
     cur_path = os.path.dirname(os.path.realpath(__file__))
-    tmp_path = os.path.join(cur_path,'testdata')
+    tmp_path = os.path.join(cur_path,'transdata')
     filelist = glob.glob(os.path.join(tmp_path,'*'))
     log_path = os.path.join(cur_path,'logs','file_upload.txt')
     # daily_dir = datetime.datetime.now().strftime('%Y%m%d')
@@ -169,8 +169,8 @@ for i,dong in enumerate(list(regions['dong'])) :
     trans_data = SFTPOperator(
         task_id = f'trans_data_{i+1}',
         ssh_conn_id = f'ssh_worker_1',
-        local_filepath = f"/home/dbsgh3322/estate_project/dags/testdata/{dong}_"+"{{ ds_nodash }}.csv",
-        remote_filepath = f"/home/dbsgh3322/estate_project/dags/transdata/{dong}_"+"{{ ds_nodash }}.csv",
+        local_filepath = f"/home/dbsgh3322/estate_project/dags/testdata/"+"{{ ds_nodash }}_data.csv",
+        remote_filepath = f"/home/dbsgh3322/estate_project/dags/transdata/"+"{{ ds_nodash }}"+f"_{dong}.csv",
         operation = "put",
         dag=dag
     )
