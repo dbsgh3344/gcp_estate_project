@@ -11,8 +11,9 @@
 # Data Pipeline Architecture
 데이터 파이프라인은 GCP기반의 ELT Process로 구성하였습니다.  
 Airflow를 사용하여 데이터 수집부터 집계까지를 자동화하였고 멱등성을 보장하여 재실행에도 중복데이터가 발생하지 않도록 설계하였습니다.  
-Airflow Metadata Database는 자택 Local PC에 구성하였습니다. (GCE 비용 이슈)  
-추후 병렬처리를 위해 Metadata Database를 PostgreSql로 구성하였습니다.
+Celery Executor를 사용하여 병렬처리하였고 Master 노드를 자택 Local PC에 구성하고 2개의 Worker를 GCE로 구성하여 총 3개의 Worker를 사용했습니다.
+<br/><br/>
+<img src="img/airflow_architecture.png" width="50%" height="50%">
 <br/><br/>
 <img src="https://github.com/dbsgh3344/gcp_estate_project/assets/29767578/cca9ac58-2aa1-441d-839b-a4bb050482e5" width="50%" height="50%">
 <br/><br/>
