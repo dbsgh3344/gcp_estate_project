@@ -37,9 +37,9 @@ dag = DAG(
     dag_id= "crawling_songdo_apt",
     description= "crawling songdo apt info",
     start_date= datetime.datetime(2023,5,10,tzinfo= time_z),
-    # schedule_interval= "@daily",
+    schedule_interval= "@daily",
     # schedule_interval= "@hourly",
-    schedule_interval=None,
+    # schedule_interval=None,
     catchup=False
 )
 
@@ -159,21 +159,23 @@ for i,dong in enumerate(list(regions['dong'])) :
     cityname = regions['cityname']
     gu = regions['gu']
     # dong = list(regions['dong']).pop()
-
+    worker_idx = (i%int(worker_num)) + 1 
     crawling_data = PythonOperator(
         task_id=f'get_data_{i+1}',
         python_callable= _crawling_task,
         provide_context=True,
         op_kwargs= {'cityname':cityname,'gu':gu,'dong':dong},
+        queue = f"server{str(worker_idx).zfill(2)}",
         dag= dag
         )
 
     trans_data = SFTPOperator(
         task_id = f'trans_data_{i+1}',
         ssh_conn_id = f'ssh_worker_1',
-        local_filepath = f"/home/dbsgh3322/estate_project/dags/testdata/"+"{{ ds_nodash }}_data.csv",
+        local_filepath = f"/home/dbsgh3322/estate_project/dags/testdata/"+"{{ ds_nodash }}"+f"_{dong}.csv",
         remote_filepath = f"/home/dbsgh3322/estate_project/dags/transdata/"+"{{ ds_nodash }}"+f"_{dong}.csv",
         operation = "put",
+        queue = f"server{str(worker_idx).zfill(2)}",
         dag=dag
     )
 
