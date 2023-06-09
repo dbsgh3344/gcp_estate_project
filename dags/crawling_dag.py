@@ -129,6 +129,7 @@ def _upload_file():
 
 start_task = DummyOperator(
     task_id = 'start',
+    queue='server01',
     dag = dag
 )
 
@@ -155,6 +156,7 @@ merge_files = PythonOperator(
 
 worker_num = Variable.get('worker_num')
 regions = Variable.get("region_json",deserialize_json=True)
+cur_path = os.path.dirname(os.path.realpath(__file__))
 for i,dong in enumerate(list(regions['dong'])) :
     cityname = regions['cityname']
     gu = regions['gu']
@@ -172,7 +174,7 @@ for i,dong in enumerate(list(regions['dong'])) :
     trans_data = SFTPOperator(
         task_id = f'trans_data_{i+1}',
         ssh_conn_id = f'ssh_worker_1',
-        local_filepath = f"/home/dbsgh3322/estate_project/dags/testdata/"+"{{ ds_nodash }}"+f"_{dong}.csv",
+        local_filepath = f"{cur_path}/testdata/"+"{{ ds_nodash }}"+f"_{dong}.csv",
         remote_filepath = f"/home/dbsgh3322/estate_project/dags/transdata/"+"{{ ds_nodash }}"+f"_{dong}.csv",
         operation = "put",
         queue = f"server{str(worker_idx).zfill(2)}",

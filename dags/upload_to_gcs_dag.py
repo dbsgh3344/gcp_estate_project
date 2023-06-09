@@ -53,7 +53,7 @@ upload_files = PythonOperator(
 )
 
 # def _load_from_gcs_to_bq() :
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/home/dbsgh3322/estate-project-382208-d1789fa4560c.json"
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/home/dbsgh3322/estate-project-382208-d1789fa4560c.json"
 bk = 'estate_bucket'
 p = 'estate/songdo/20230406_송도동_e편한세상송도.csv'
 gcsToBigQuery = GoogleCloudStorageToBigQueryOperator(
