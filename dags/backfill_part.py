@@ -8,7 +8,10 @@ from airflow import DAG,macros
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 import sys
-sys.path.append('/home/dbsgh3322/estate_project/extract_data/')
+import os
+crawling_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'../extract_data')
+sys.path.append(crawling_path)
+# sys.path.append('/home/dbsgh3322/estate_project/extract_data/')
 from crawling_estates import CrawlingEstatesInfo
 import datetime
 import pendulum
@@ -16,7 +19,6 @@ from airflow.providers.google.cloud.hooks.gcs import GCSHook
 from airflow.providers.google.cloud.operators.bigquery import BigQueryExecuteQueryOperator
 from airflow.contrib.operators.gcs_to_bq import GoogleCloudStorageToBigQueryOperator
 import glob
-import os
 
 
 gcs_bucket = 'estate_bucket'
