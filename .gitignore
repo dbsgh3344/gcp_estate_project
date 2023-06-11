@@ -5,3 +5,8 @@ transdata/
 private_dir/
 url_header.json
 tmp.py
+docker/config/
+docker/dags/
+docker/logs/
+docker/plugins/
+.env
