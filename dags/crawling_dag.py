@@ -12,6 +12,7 @@ from airflow.operators.dummy import DummyOperator
 from airflow.models.variable import Variable
 import os
 import sys
+import csv
 # cur_path = os.path.dirname(os.path.realpath(__file__))
 # sys.path.append('/home/dbsgh3322/estate_project/extract_data/')
 crawling_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'../extract_data')
@@ -84,13 +85,19 @@ def _merge_daily_file(ds_nodash,**kwargs) :
 
     tmp = pd.DataFrame()
     for f in filelist :
-        dt = os.path.basename(f).split('_')[0]
+        dt = os.path.basename(f).split('_')[0]        
         if dt == ds_nodash:
-            df = pd.read_csv(f)
-            tmp = pd.concat([tmp,df])
-            os.remove(f)
-            
+            with open(f,'r',encoding='utf-8') as c:
+                csvfile =[l for l in csv.reader(c,delimiter=',')]
+                if not len(csvfile[0]):
+                    print(f'no exist data {f}')
+                else :                    
+                    df = pd.read_csv(f)
+                    tmp = pd.concat([tmp,df])
+                    # os.remove(f)
     
+    list(map(lambda x:os.remove(x),filelist))
+
     if len(tmp) :
         tmp.drop_duplicates(subset=['no'],keep='last',inplace=True)
         tmp.dropna(inplace=True)
