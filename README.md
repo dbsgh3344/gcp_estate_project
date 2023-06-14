@@ -11,7 +11,6 @@
 # Data Architecture 
 데이터 인프라는 데이터 수집 속도를 향상시키기 위해 Celery Executor를 사용한 분산서버로 구축하였습니다.  
 Master 노드를 자택 Local PC에 Docker Compose를 통해 구성하였고 2개의 Worker를 GCE로 구성하여 총 4개의 Worker를 사용했습니다.
-<br/><br/>
 
 ### Infra Architecture 
 <img src="img/airflow_architecture.png" width="50%" height="50%">
@@ -20,7 +19,6 @@ Master 노드를 자택 Local PC에 Docker Compose를 통해 구성하였고 2�
 
 데이터 파이프라인은 GCP기반의 ELT Process로 구성하였습니다.  
 Airflow를 사용하여 데이터 수집부터 집계까지를 자동화하였고 멱등성을 보장하여 재실행에도 중복데이터가 발생하지 않도록 설계하였습니다. 
-<br/><br/>
 
 ### Airflow Taskflow
 <img src="https://github.com/dbsgh3344/gcp_estate_project/assets/29767578/cca9ac58-2aa1-441d-839b-a4bb050482e5" width="50%" height="50%">

@@ -37,11 +37,11 @@ time_z = pendulum.timezone('Asia/Seoul')
 dag = DAG(
     dag_id= "crawling_songdo_apt",
     description= "crawling songdo apt info",
-    start_date= datetime.datetime(2023,5,10,tzinfo= time_z),
+    start_date= datetime.datetime(2023,6,13,tzinfo= time_z),
     schedule_interval= "@daily",
     # schedule_interval= "@hourly",
     # schedule_interval=None,
-    catchup=False
+    catchup=True
 )
 
 
