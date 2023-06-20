@@ -14,7 +14,7 @@ time_z = pendulum.timezone('Asia/Seoul')
 dag = DAG(
     dag_id = "dag_test",
     description="test",
-    start_date=datetime.datetime(2023,4,19,13,50,tzinfo=time_z),
+    start_date=datetime.datetime(2023,6,20,11,50,tzinfo=time_z),
     schedule_interval="0/5 * * * *",
 )
 
@@ -28,6 +28,7 @@ def test():
 get_p = PythonOperator(
     task_id= 'test_task',
     python_callable=test,
+    queue='server04',
     dag=dag
 )
 
