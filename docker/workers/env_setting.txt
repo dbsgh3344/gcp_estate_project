@@ -1,0 +1,14 @@
+AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+AIRFLOW__MASTER__IP=${AIRFLOW__MASTER__IP}
+AIRFLOW__CORE__DAGS_FOLDER=~/airflow/vol
+AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@${AIRFLOW__MASTER__IP}:5432/airflow
+AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@${AIRFLOW__MASTER__IP}:5432/airflow    
+AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow:airflow@${AIRFLOW__MASTER__IP}:5432/airflow    
+AIRFLOW__CELERY__BROKER_URL=amqp://admin:song@${AIRFLOW__MASTER__IP}:5672/airflow_vhost
+AIRFLOW__CORE__FERNET_KEY=''
+AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=true
+AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+AIRFLOW__WEBSERVER__SECRET_KEY=${WEBSERVER_SECRET_KEY}
+GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CREDENTIAL}
+AIRFLOW__CORE__HOSTNAME_CALLABLE="airflow.utils.net.get_host_ip_address"
+AIRFLOW__CORE__LOAD_EXAMPLES=false

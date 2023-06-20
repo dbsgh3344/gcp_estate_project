@@ -1,0 +1,8 @@
+apache-airflow==2.5.3 
+psycopg2-binary==2.9.5
+celery==5.2.7
+apache-airflow-providers-google==8.11.0
+apache-airflow-providers-sftp==4.3.0
+apache-airflow-providers-ssh==3.7.0
+pandas==1.5.3
+beautifulsoup4==4.12.2
