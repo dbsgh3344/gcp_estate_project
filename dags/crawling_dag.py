@@ -41,7 +41,7 @@ dag = DAG(
     schedule_interval= "@daily",
     # schedule_interval= "@hourly",
     # schedule_interval=None,
-    catchup=True
+    # catchup=True
 )
 
 
