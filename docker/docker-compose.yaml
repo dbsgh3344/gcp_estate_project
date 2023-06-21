@@ -184,7 +184,7 @@ services:
     <<: *airflow-common
     command: celery worker -q server03
     ports:
-      - "9950:9950"
+      - "9950:22"
     healthcheck:
       test:
         - "CMD-SHELL"
@@ -208,7 +208,7 @@ services:
     <<: *airflow-common
     command: celery worker -q server04
     ports:
-      - "9951:9951"
+      - "9951:22"
     healthcheck:
       test:
         - "CMD-SHELL"
