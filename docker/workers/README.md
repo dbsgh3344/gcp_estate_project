@@ -4,7 +4,7 @@ airflow cluster와 동일한 dags folder를 volume mount
 docker run -it -d -v <cluster dags path>:<container path> <image name> /bin/bash 
 ```
 <br><br>
-## 컨테이너 내부에서 실행  
+## 컨테이너 실행 후 추가사항  
 
 1. 환경변수 설정  
     미리 아래 환경변수들을 각 설정에 맞게 export  

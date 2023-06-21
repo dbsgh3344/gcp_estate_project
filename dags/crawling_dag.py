@@ -158,7 +158,7 @@ merge_files = PythonOperator(
     task_id = 'merge_file',
     python_callable = _merge_daily_file,
     provide_context=True,
-    queue='server01',
+    queue='server03',
     dag = dag
 )
 
@@ -199,7 +199,7 @@ for i,dong in enumerate(list(regions['dong'])) :
 upload_files = PythonOperator(
     task_id = 'upload_file',
     python_callable = _upload_file,
-    queue='server01',
+    queue='server03',
     dag = dag
 )
 
@@ -212,7 +212,7 @@ del_today_data_in_bq = BigQueryExecuteQueryOperator(
     ],
     write_disposition = "WRITE_TRUNCATE",
     use_legacy_sql=False,
-    queue='server01',
+    queue='server03',
     dag=dag
 )
 
@@ -225,7 +225,7 @@ gcsToBigQuery = GoogleCloudStorageToBigQueryOperator(
     source_format = 'CSV',
     write_disposition='WRITE_APPEND',
     # create_disposition = 'CREATE_IF_NEEDED',
-    queue='server01',
+    queue='server03',
     dag=dag
 )
 
@@ -240,7 +240,7 @@ daily_for_sale_agg = BigQueryExecuteQueryOperator(
         "where confirmYmd={{ ds_nodash }} group by apt_name,confirmYmd;"],
     write_disposition = "WRITE_TRUNCATE",
     use_legacy_sql=False,
-    queue='server01',
+    queue='server03',
     dag=dag
     )
     

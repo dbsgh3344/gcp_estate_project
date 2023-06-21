@@ -31,24 +31,24 @@ test = PythonOperator(
     dag=dag
 )
 
-tt = SFTPOperator(
-    task_id = f'trans_data',
-    ssh_conn_id = f'ssh_worker_1',
-    local_filepath = "/opt/airflow/test.txt",
-    remote_filepath = f"/home/dbsgh3322/estate_project/dags/test.txt",
-    operation = "put",
-    queue = 'server04',
-    dag=dag)
-
-# tt2 = SFTPOperator(
-#     task_id = f'trans_data2',
-#     ssh_conn_id = f'ssh_worker_3',
-#     local_filepath = f"/home/dbsgh3322/estate_project/dags/test.txt",
-#     remote_filepath = "/opt/airflow/test.txt",
-#     operation = "get",
+# tt = SFTPOperator(
+#     task_id = f'trans_data',
+#     ssh_conn_id = f'ssh_worker_1',
+#     local_filepath = "/opt/airflow/test.txt",
+#     remote_filepath = f"/home/dbsgh3322/estate_project/dags/test.txt",
+#     operation = "put",
 #     queue = 'server04',
 #     dag=dag)
 
+tt2 = SFTPOperator(
+    task_id = f'trans_data2',
+    ssh_conn_id = f'ssh_worker_test',
+    local_filepath = f"/home/dbsgh3322/estate_project/dags/test.txt",
+    remote_filepath = "/opt/airflow/test.txt",
+    operation = "put",
+    queue = 'server02',
+    dag=dag)
+
 # tt2
-test >> tt
+test >> tt2
 # test >> tt2

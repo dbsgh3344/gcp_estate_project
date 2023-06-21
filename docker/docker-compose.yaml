@@ -55,9 +55,9 @@ x-airflow-common:
   # build: .
   environment:
     &airflow-common-env
-    command: sh -c "apt-get update && apt-get install vim -y"
+    command: apt-get update && apt-get install vim -y
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
-    AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/vol
+    AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/vol/dags
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     # For backward compatibility, with Airflow <2.3
     AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow    
