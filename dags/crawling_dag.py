@@ -183,7 +183,7 @@ for i,dong in enumerate(list(regions['dong'])) :
         task_id = f'trans_data_{i+1}',
         ssh_conn_id = f'ssh_worker_{str(worker_idx)}',
         local_filepath = f"{cur_path}/testdata/"+"{{ ds_nodash }}"+f"_{dong}.csv",
-        remote_filepath = f"/home/dbsgh3322/estate_project/dags/transdata/"+"{{ ds_nodash }}"+f"_{dong}.csv",
+        remote_filepath = f"/opt/airflow/vol/dags/transdata/"+"{{ ds_nodash }}"+f"_{dong}.csv",
         operation = "put",
         queue = f"server{str(worker_idx).zfill(2)}",
         dag=dag
