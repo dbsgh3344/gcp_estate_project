@@ -10,10 +10,17 @@
 
 # Data Architecture 
 데이터 인프라는 데이터 수집 속도를 향상시키기 위해 Celery Executor를 사용한 분산서버로 구축하였습니다.  
-Master 노드를 자택 Local PC에 Docker Compose를 통해 구성하였고 2개의 Worker를 GCE로 구성하여 총 4개의 Worker를 사용했습니다.
+Master 노드를 자택 Local PC에 Docker Compose를 통해 구성하였고 2개의 Worker를 GCE로 구성하여 총 4개의 Worker를 사용했습니다.  
+추후 worker를 추가하기 용이하도록 worker환경을 dockerfile로 생성해두었습니다.  
 
 ### Infra Architecture 
 <img src="img/airflow_architecture.png" width="50%" height="50%">
+<br/><br/>
+
+만약 dag가 수정되면 모든 worker들의 dag도 동일하게 최신화되어야 합니다.  
+이를 위해 jenkins를 사용하여 github에 commit이 발생하면 worker의 dag를 update하도록 구성했습니다.   
+### Deploy Workflow
+<img src="img/deploy_using_jenkins.png" width="50%" height="50%">
 <br/><br/>
 <br/><br/>
 
