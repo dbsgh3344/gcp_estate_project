@@ -25,6 +25,7 @@ def test():
         f.write(curdate+'\n')
 
 
+
 get_p = PythonOperator(
     task_id= 'test_task',
     python_callable=test,
